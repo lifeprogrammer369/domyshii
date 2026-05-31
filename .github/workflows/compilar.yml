@@ -7,16 +7,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Esta variable de entorno soluciona la advertencia de Node 20 en GitHub
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-    # 1. Descargar el código del repositorio
+    # 1. Descargar el código del repositorio (Actualizado a v4)
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    # 2. Configurar Node.js (CORREGIDO: 'node-version' y actualizado a v24)
+    # 2. Configurar Node.js (Actualizado a usar Node 24 de forma nativa)
     - name: Configurar Node.js
       uses: actions/setup-node@v4
       with:
@@ -33,7 +30,7 @@ jobs:
     - name: Instalar dependencias de NPM
       run: npm install
 
-    # 5. Compilar la aplicación web (genera la carpeta dist)
+    # 5. Compilar la aplicación web
     - name: Compilar App Web
       run: npm run build
 
@@ -49,7 +46,7 @@ jobs:
         cd android
         ./gradlew assembleDebug
 
-    # 8. Subir el archivo APK resultante para que lo puedas descargar
+    # 8. Subir el archivo APK resultante
     - name: Subir APK generado
       uses: actions/upload-artifact@v4
       with:
