@@ -1,71 +1,81 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { Preferences } from '@capacitor/preferences'; // Importamos el storage
 
 function App() {
-  const [status, setStatus] = useState('Listo para programar');
+  const [status, setStatus] = useState('Cargando...');
+  const [rutinas, setRutinas] = useState<any[]>([]);
 
-  // 1. Solicitar permisos de notificación (Android los requiere)
-  const solicitarPermisos = async () => {
-    const permission = await LocalNotifications.requestPermissions();
-    if (permission.display === 'granted') {
-      setStatus('Permisos concedidos');
-    } else {
-      setStatus('Permisos denegados');
-    }
-  };
+  // 1. Cargar datos del almacenamiento local al iniciar la app
+  useEffect(() => {
+    const cargarDatos = async () => {
+      const { value } = await Preferences.get({ key: 'mis_rutinas' });
+      if (value) {
+        setRutinas(JSON.parse(value));
+      }
+      setStatus('Datos cargados');
+    };
+    
+    cargarDatos();
+  }, []);
 
-  // 2. Programar una alarma/notificación para dentro de 10 segundos
-  const programarAlarmaRapida = async () => {
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          title: "¡Alarma Activa!",
-          body: "Este es tu recordatorio programado desde Termux.",
-          id: 1,
-          schedule: { at: new Date(Date.now() + 10000) }, // 10000ms = 10 segundos
-          sound: 'default',
-          actionTypeId: '',
-          extra: null
-        }
-      ]
+  // 2. Guardar datos en el almacenamiento y reprogramar notificaciones
+  const guardarYProgramarRutina = async (nuevaRutina: any) => {
+    const listaActualizada = [...rutinas, nuevaRutina];
+    setRutinas(listaActualizada);
+
+    // Guardar localmente
+    await Preferences.set({
+      key: 'mis_rutinas',
+      value: JSON.stringify(listaActualizada),
     });
-    setStatus('Alarma programada para dentro de 10s');
-  };
 
-  // 3. Programar una notificación con horario repetitivo (ej: Cada mañana a las 8:00 AM)
-  const programarHorarioFijo = async () => {
+    // Programar la notificación nativa
     await LocalNotifications.schedule({
       notifications: [
         {
-          title: "Rutina Matutina",
-          body: "Es hora de revisar tu aplicación.",
-          id: 2,
+          title: nuevaRutina.titulo,
+          body: "Es hora de tu rutina",
+          id: Number(nuevaRutina.id), // Capacitor pide IDs numéricos
           schedule: {
-            on: { hour: 8, minute: 0 }, // 08:00 AM
-            repeats: true // Se repite todos los días a esa hora
+            on: { hour: nuevaRutina.hora, minute: nuevaRutina.minuto },
+            repeats: true
           }
         }
       ]
     });
-    setStatus('Alarma diaria fijada a las 8:00 AM');
+
+    setStatus(`Rutina "${nuevaRutina.titulo}" guardada y programada`);
+  };
+
+  // Función de ejemplo para el botón
+  const agregarRutinaEjemplo = () => {
+    const nueva = {
+      id: Date.now().toString().slice(-6), // Un ID numérico único corto
+      titulo: "Nueva Tarea Semanal",
+      hora: 14,
+      minuto: 30
+    };
+    guardarYProgramarRutina(nueva);
   };
 
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', textAlign: 'center' }}>
-      <h2>Mi App de Alarmas 📱</h2>
+      <h2>Mi App de Rutinas Persistentes 📱</h2>
       <p>Estado: <strong>{status}</strong></p>
-      
-      <button onClick={solicitarPermisos} style={{ display: 'block', margin: '10px auto', padding: '10px' }}>
-        1. Conceder Permisos
-      </button>
-      
-      <button onClick={programarAlarmaRapida} style={{ display: 'block', margin: '10px auto', padding: '10px' }}>
-        2. Alarma de prueba (10 segundos)
+
+      <button onClick={agregarRutinaEjemplo} style={{ padding: '10px', backgroundColor: '#4CAF50', color: 'white' }}>
+        Añadir Rutina (14:30)
       </button>
 
-      <button onClick={programarHorarioFijo} style={{ display: 'block', margin: '10px auto', padding: '10px' }}>
-        3. Alarma Diaria (8:00 AM)
-      </button>
+      <h3>Mis Rutinas Guardadas:</h3>
+      <ul style={{ listStyle: 'none', padding: 0 }}>
+        {rutinas.map((rutina) => (
+          <li key={rutina.id} style={{ margin: '10px', padding: '10px', border: '1px solid #ccc' }}>
+            {rutina.titulo} - {rutina.hora}:{rutina.minuto}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
