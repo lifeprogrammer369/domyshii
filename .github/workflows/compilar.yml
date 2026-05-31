@@ -9,46 +9,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Descargar el código del repositorio
+    # 1. Descargar el código
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    # 2. Configurar Node.js (Usando la versión v4.2.0+ que migró completamente a Node 24)
+    # 2. Configurar Node.js (Sin cachés pesados)
     - name: Configurar Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '24'
-        cache: 'npm'
 
-    # 3. Configurar Java (Usando la versión v4.7.0+ que ya corre bajo Node 24 por defecto)
+    # 3. Configurar Java (QUITADO el caché que rompía la compilación)
     - name: Configurar JDK 17
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
-        cache: 'gradle'
 
-    # 4. Instalar dependencias del proyecto
-    - name: Instalar dependencias de NPM
-      run: npm ci
+    # 4. Instalar dependencias limpias
+    - name: Instalar dependencias
+      run: npm install
 
     # 5. Compilar la aplicación web
     - name: Compilar App Web
       run: npm run build
 
-    # 6. Añadir la plataforma Android al proyecto mediante Capacitor
+    # 6. Crear el entorno nativo de Android desde cero
     - name: Añadir plataforma Android
       run: |
-        npx cap add android || true
+        npx cap add android
         npx cap sync android
 
-    # 7. Compilar el archivo APK final usando Gradle
+    # 7. Compilar el archivo APK final
     - name: Compilar APK (Modo Debug)
       run: |
         cd android
         ./gradlew assembleDebug
 
-    # 8. Subir el archivo APK resultante
+    # 8. Guardar el archivo APK para descargar
     - name: Subir APK generado
       uses: actions/upload-artifact@v4
       with:
