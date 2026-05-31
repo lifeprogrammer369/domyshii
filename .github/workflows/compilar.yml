@@ -9,17 +9,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Descargar el código del repositorio (Actualizado a v4)
+    # 1. Descargar el código del repositorio
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    # 2. Configurar Node.js (Actualizado a usar Node 24 de forma nativa)
+    # 2. Configurar Node.js (v4 ya soporta Node 24 nativo en sus parches recientes)
     - name: Configurar Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '24'
 
-    # 3. Configurar Java (necesario para compilar Android)
+    # 3. Configurar Java (Actualizado a v4 con parches de Node 24)
     - name: Configurar JDK 17
       uses: actions/setup-java@v4
       with:
