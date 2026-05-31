@@ -34,9 +34,10 @@ jobs:
     - name: Compilar App Web
       run: npm run build
 
-    # 6. Crear el entorno nativo de Android desde cero
+    # 6. Añadir la plataforma Android al proyecto mediante Capacitor
     - name: Añadir plataforma Android
       run: |
+        npx cap init "Mi App" "com.tuusuario.miapp" --web-dir=dist || true
         npx cap add android
         npx cap sync android
 
