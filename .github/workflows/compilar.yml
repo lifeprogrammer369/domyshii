@@ -7,23 +7,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    # Aquí forzamos de manera global en el contenedor el uso de Node 24
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
     steps:
-    # 1. Descargar el código del repositorio
+    # 1. Descargar el código del repositorio (v4 actualizada corre en Node 24)
     - name: Checkout del código
       uses: actions/checkout@v4
+      with:
+        sparse-checkout: .
 
-    # 2. Configurar Node.js
+    # 2. Configurar Node.js (v4 ya tiene soporte nativo para Node 24 sin advertencias)
     - name: Configurar Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '24'
 
-    # 3. Configurar Java (necesario para compilar Android)
+    # 3. Configurar Java (v4 ya incluye los entornos de ejecución modernos)
     - name: Configurar JDK 17
       uses: actions/setup-java@v4
       with:
